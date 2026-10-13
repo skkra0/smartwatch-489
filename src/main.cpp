@@ -4,14 +4,19 @@
 #include "MAX30105.h"
 #include "heartRate.h"
 
+// LIS3DH stores 16-bit acceleration values with range of ±2g: divide by 2^14 to get gs
+#define COUNTS_PER_G (16384.0f)
+
 
 Adafruit_LIS3DH lis;
+float stepThreshold = 1.3;
+unsigned long debounceTime = 300; // ms
+unsigned long lastStepTime = 0;
 
 int steps = 0;
 
 void setup(void) {
   Serial.begin(115200);
-  while (!Serial) delay(10);
 
   lis = Adafruit_LIS3DH();
   if (!lis.begin(0x18)) {
@@ -21,15 +26,21 @@ void setup(void) {
     Serial.println("LIS3DH found!");
   }
   lis.setRange(LIS3DH_RANGE_2_G);
+  lis.setDataRate(LIS3DH_DATARATE_50_HZ);
 }
 
 void loop() {
+  if (!lis.haveNewData()) {
+    return;
+  }
+
   lis.read();
-  Serial.print("X: ");
-  Serial.print(lis.x);
-  Serial.print("\tY: ");
-  Serial.print(lis.y);
-  Serial.print("\tZ: ");
-  Serial.println(lis.z);
-  delay(20);
+  float norm = sqrtf(sq((float) lis.x) + sq((float) lis.y) + sq((float) lis.z)) / COUNTS_PER_G;
+  unsigned long now = millis();
+  if (norm > stepThreshold && (now - lastStepTime) > debounceTime) {
+    steps++;
+    lastStepTime = now;
+    Serial.print("Total steps: ");
+    Serial.println(steps);
+  }
 }
