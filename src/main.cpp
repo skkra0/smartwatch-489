@@ -1,3 +1,33 @@
+#include <Arduino.h>
+#include <SPI.h>
+#include <TFT_eSPI.h>
+
+TFT_eSPI tft = TFT_eSPI();
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000); // Give hardware time to power up
+  Serial.println("Starting display test...");
+
+  // Initialize the display
+  tft.init();
+  Serial.println("TFT initialized successfully!");
+  
+  tft.setRotation(0);
+  tft.fillScreen(TFT_BLACK);
+
+  tft.fillCircle(120, 120, 110, TFT_BLUE);
+  tft.setTextColor(TFT_WHITE, TFT_BLUE);
+  tft.setTextDatum(MC_DATUM);
+  tft.drawString("GC9A01 OK", 120, 120, 4);
+  Serial.println("Graphics drawn!");
+}
+
+void loop() {
+  delay(1000);
+}
+
+#if 0
 #include <Wire.h>
 #include <Adafruit_LIS3DH.h>
 
@@ -163,3 +193,4 @@ void loop() {
   float a = sqrtf((float)lis.x * lis.x + (float)lis.y * lis.y + (float)lis.z * lis.z) / COUNTS_PER_G;
   process(a);
 }
+#endif
