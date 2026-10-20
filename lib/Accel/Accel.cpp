@@ -5,6 +5,7 @@
 
 // Step counter based on this algorithm for ADXL367: https://www.analog.com/en/resources/app-notes/an-2554.html
 Adafruit_LIS3DH lis;
+bool foundLIS3DH = false;
 
 // circular buffers
 // last (ACCEL_FILTER_ORDER) raw values
@@ -132,7 +133,10 @@ void process(float a) {
 
 
 void handleAccelFIFOInterrupt(void) {
-  DEBUG_PRINTLN("handling interrupt");
+  DEBUG_PRINTLN("handling interrupt on accelerometer");
+  if (!foundLIS3DH) {
+    return;
+  }
 
   Wire.requestFrom(LIS3DH_REG_FIFOSRC, 1);
   uint8_t numToRead;
@@ -147,14 +151,14 @@ void handleAccelFIFOInterrupt(void) {
   }
 }
 
-
 // call Wire.begin() and Serial.begin() first
-void setupAccelFIFO(void) {
+bool setupAccelFIFO(void) {
   uint8_t err;
   if (!lis.begin(0x18)) {
-    DEBUG_PRINTLN("No LIS3DH"); // 
-    while (1);
+    DEBUG_PRINTLN("No LIS3DH");
+    return false;
   }
+  foundLIS3DH = true;
   lis.setRange(LIS3DH_RANGE_2_G);
   lis.setDataRate(LIS3DH_DATARATE_50_HZ);
 
@@ -185,10 +189,11 @@ void setupAccelFIFO(void) {
   err = Wire.endTransmission();
   if (err) goto onerr;
 
-  return;
+  return true;
 
   onerr:
     DEBUG_PRINT("I2C error(LIS3DH): ");
     DEBUG_PRINTLN(err);
-    while (1);
+    foundLIS3DH = false;
+    return false;
 }

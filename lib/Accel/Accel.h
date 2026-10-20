@@ -18,4 +18,4 @@ enum State {
 };
 
 void handleAccelFIFOInterrupt(void);
-void setupAccelFIFO(void);
+bool setupAccelFIFO(void);

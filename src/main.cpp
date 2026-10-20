@@ -9,8 +9,9 @@ void setup() {
     Serial.begin(115200);
   #endif
 
-  setupAccelFIFO();
-  attachInterrupt(digitalPinToInterrupt(18), handleAccelFIFOInterrupt, RISING);
+  if (setupAccelFIFO()) {
+    attachInterrupt(digitalPinToInterrupt(18), handleAccelFIFOInterrupt, RISING);
+  }
 }
 
 void loop() {
