@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_LIS3DH.h>
-#include "accel.h"
-#include "debug.h"
+#include <Accel.h>
+#include <Debug.h>
 
 // Step counter based on this algorithm for ADXL367: https://www.analog.com/en/resources/app-notes/an-2554.html
 Adafruit_LIS3DH lis;
@@ -131,26 +131,6 @@ void process(float a) {
   }
 }
 
-
-void handleAccelFIFOInterrupt(void) {
-  DEBUG_PRINTLN("handling interrupt on accelerometer");
-  if (!foundLIS3DH) {
-    return;
-  }
-
-  Wire.requestFrom(LIS3DH_REG_FIFOSRC, 1);
-  uint8_t numToRead;
-  Wire.readBytes(&numToRead, 1);
-  numToRead &= (1<<4) - 1;
-
-  while (numToRead > 0) {
-    lis.read();
-    float a = sqrtf((float)lis.x * lis.x + (float)lis.y * lis.y + (float)lis.z * lis.z) / ACCEL_COUNTS_PER_G;
-    process(a); 
-    numToRead--;
-  }
-}
-
 // call Wire.begin() and Serial.begin() first
 bool setupAccelFIFO(void) {
   uint8_t err;
@@ -177,12 +157,14 @@ bool setupAccelFIFO(void) {
     Stream-to-FIFO mode (11). The buffer starts in Stream mode and switches to FIFO when an interrupt occurs.
   */
 
+  Wire.beginTransmission(0x18);
   Wire.write(LIS3DH_REG_FIFOCTRL);
   Wire.write(0b10011000); // Use FIFO stream mode; read up to 24 entries at once
 
   err = Wire.endTransmission();
   if (err) goto onerr;
 
+  Wire.beginTransmission(0x18);
   Wire.write(LIS3DH_REG_CTRL3);
   Wire.write(0b00000100); // Enable watermark interrupt
 
@@ -196,4 +178,30 @@ bool setupAccelFIFO(void) {
     DEBUG_PRINTLN(err);
     foundLIS3DH = false;
     return false;
+}
+
+void drainFIFO(void) {
+  Wire.beginTransmission(0x18);
+  Wire.write(LIS3DH_REG_FIFOSRC);
+  uint8_t err = Wire.endTransmission(false);
+  if (err) {
+    DEBUG_PRINT("I2C error (drainFIFO): ");
+    DEBUG_PRINTLN(err);
+    return;
+  } 
+  uint8_t numToRead;
+  if (Wire.requestFrom(0x18, 1) == 1) {
+    numToRead = Wire.read();
+    numToRead &= ((1<<5) - 1);
+  } else {
+    DEBUG_PRINTLN("couldn't read reg");
+    return;
+  }
+
+  while (numToRead > 0) {
+    lis.read();
+    float a = sqrtf((float)lis.x * lis.x + (float)lis.y * lis.y + (float)lis.z * lis.z) / ACCEL_COUNTS_PER_G;
+    process(a); 
+    numToRead--;
+  }
 }

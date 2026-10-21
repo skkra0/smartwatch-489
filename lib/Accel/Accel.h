@@ -9,7 +9,7 @@
 #define ACCEL_SENS            0.1f                    // sensitivity in g. Count a step when max and min above and below the threshold and amplitude is higher than this
 #define ACCEL_MIN_SEARCH      ACCEL_SAMPLE_HZ               // 1 s to find the min after a max
 #define ACCEL_REG_OFF_TIME    (2 * ACCEL_SAMPLE_HZ)         // number of samples without a step to leave walking mode
-#define ACCEL_STEPS_TO_START  8                       // number of steps before we start counting
+#define ACCEL_STEPS_TO_START  6                       // number of steps before we start counting
 #define ACCEL_MAX_FAILS       2                       // consecutive failed pairs before reset
 
 enum State {
@@ -17,5 +17,5 @@ enum State {
     FIND_MAX,
 };
 
-void handleAccelFIFOInterrupt(void);
+void drainFIFO(void);
 bool setupAccelFIFO(void);

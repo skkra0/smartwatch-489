@@ -10,10 +10,17 @@ void setup() {
   #endif
 
   if (setupAccelFIFO()) {
-    attachInterrupt(digitalPinToInterrupt(18), handleAccelFIFOInterrupt, RISING);
+    DEBUG_PRINTLN("setup fifo");
+    pinMode(18, INPUT);
+    gpio_wakeup_enable(GPIO_NUM_18, GPIO_INTR_HIGH_LEVEL);
+    esp_sleep_enable_gpio_wakeup();
   }
 }
 
 void loop() {
-  sleep(600);
+  if (digitalRead(18)) {
+    drainFIFO();
+  }
+
+  esp_light_sleep_start(); 
 }
