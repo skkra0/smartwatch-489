@@ -181,6 +181,7 @@ bool setupAccelFIFO(void) {
 }
 
 void drainFIFO(void) {
+  
   if (!foundLIS3DH) {
     return;
   }
