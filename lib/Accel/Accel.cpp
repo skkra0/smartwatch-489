@@ -181,6 +181,9 @@ bool setupAccelFIFO(void) {
 }
 
 void drainFIFO(void) {
+  if (!foundLIS3DH) {
+    return;
+  }
   Wire.beginTransmission(0x18);
   Wire.write(LIS3DH_REG_FIFOSRC);
   uint8_t err = Wire.endTransmission(false);
