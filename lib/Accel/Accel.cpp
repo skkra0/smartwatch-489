@@ -38,6 +38,10 @@ bool isWalking = false;
 // total steps
 uint32_t steps = 0;
 
+uint32_t getSteps(void) {
+  return steps;
+}
+
 // check if step and update threshold
 void evalPair(float mx, float mn) {
   bool isStep = mx > dynThr + ACCEL_SENS / 2 && mn < dynThr - ACCEL_SENS / 2;

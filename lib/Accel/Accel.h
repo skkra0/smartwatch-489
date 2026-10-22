@@ -19,3 +19,4 @@ enum State {
 
 void drainFIFO(void);
 bool setupAccelFIFO(void);
+uint32_t getSteps(void);
