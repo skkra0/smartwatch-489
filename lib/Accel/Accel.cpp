@@ -6,6 +6,7 @@
 // Step counter based on this algorithm for ADXL367: https://www.analog.com/en/resources/app-notes/an-2554.html
 Adafruit_LIS3DH lis;
 bool foundLIS3DH = false;
+uint8_t lisAddr = 0x18;
 
 // circular buffers
 // last (ACCEL_FILTER_ORDER) raw values
@@ -138,7 +139,12 @@ void process(float a) {
 // call Wire.begin() and Serial.begin() first
 bool setupAccelFIFO(void) {
   uint8_t err;
-  if (!lis.begin(0x18)) {
+  // address depends on the SDO/SA0 pin: 0x18 when low, 0x19 when high
+  if (lis.begin(0x18)) {
+    lisAddr = 0x18;
+  } else if (lis.begin(0x19)) {
+    lisAddr = 0x19;
+  } else {
     DEBUG_PRINTLN("No LIS3DH");
     return false;
   }
@@ -146,7 +152,7 @@ bool setupAccelFIFO(void) {
   lis.setRange(LIS3DH_RANGE_2_G);
   lis.setDataRate(LIS3DH_DATARATE_50_HZ);
 
-  Wire.beginTransmission(0x18);
+  Wire.beginTransmission(lisAddr);
   Wire.write(LIS3DH_REG_CTRL5);
   Wire.write(0b01000000); // set FIFO_EN
 
@@ -161,14 +167,14 @@ bool setupAccelFIFO(void) {
     Stream-to-FIFO mode (11). The buffer starts in Stream mode and switches to FIFO when an interrupt occurs.
   */
 
-  Wire.beginTransmission(0x18);
+  Wire.beginTransmission(lisAddr);
   Wire.write(LIS3DH_REG_FIFOCTRL);
   Wire.write(0b10011000); // Use FIFO stream mode; read up to 24 entries at once
 
   err = Wire.endTransmission();
   if (err) goto onerr;
 
-  Wire.beginTransmission(0x18);
+  Wire.beginTransmission(lisAddr);
   Wire.write(LIS3DH_REG_CTRL3);
   Wire.write(0b00000100); // Enable watermark interrupt
 
@@ -185,11 +191,10 @@ bool setupAccelFIFO(void) {
 }
 
 void drainFIFO(void) {
-  
   if (!foundLIS3DH) {
     return;
   }
-  Wire.beginTransmission(0x18);
+  Wire.beginTransmission(lisAddr);
   Wire.write(LIS3DH_REG_FIFOSRC);
   uint8_t err = Wire.endTransmission(false);
   if (err) {
@@ -198,7 +203,7 @@ void drainFIFO(void) {
     return;
   } 
   uint8_t numToRead;
-  if (Wire.requestFrom(0x18, 1) == 1) {
+  if (Wire.requestFrom(lisAddr, (uint8_t)1) == 1) {
     numToRead = Wire.read();
     numToRead &= ((1<<5) - 1);
   } else {
