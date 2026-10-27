@@ -1,2 +1,5 @@
-bool setupScreen(void);
-void writeStringToScreen(String& string);
+namespace Screen
+{
+    bool setup(void);
+    void writeStringToScreen(String &string);
+}

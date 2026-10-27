@@ -34,23 +34,23 @@ void setup() {
     DEBUG_PRINTLN("i2c init failed");
   }
 
-  if (setupAccelFIFO()) {
+  if (Accel::setup()) {
     DEBUG_PRINTLN("setup fifo");
     pinMode(18, INPUT);
     gpio_wakeup_enable(GPIO_NUM_18, GPIO_INTR_HIGH_LEVEL);
     esp_sleep_enable_gpio_wakeup();
   }
 
-  if (setupScreen()) {
+  if (Screen::setup()) {
     DEBUG_PRINTLN("setup screen");
   }
 }
 
 void loop() {
   if (digitalRead(18)) {
-    drainFIFO();
-    String steps = String(getSteps());
-    writeStringToScreen(steps);
+    Accel::drainFIFO();
+    String steps = String(Accel::getSteps());
+    Screen::writeStringToScreen(steps);
   }
 
   esp_light_sleep_start(); 

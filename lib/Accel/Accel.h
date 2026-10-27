@@ -17,6 +17,9 @@ enum State {
     FIND_MAX,
 };
 
-void drainFIFO(void);
-bool setupAccelFIFO(void);
-uint32_t getSteps(void);
+namespace Accel
+{
+    void drainFIFO(void);
+    bool setup(void);
+    uint32_t getSteps(void);
+};
