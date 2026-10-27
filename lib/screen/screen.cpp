@@ -42,8 +42,8 @@ namespace Screen
     return true;
   }
 
-  void writeStringToScreen(String &string)
+  void writeStringToScreen(String &string, int32_t x, int32_t y, uint8_t size)
   {
-    tft.drawString(string, 120, 120, 1);
+    tft.drawString(string, x, y, size);
   }
 }

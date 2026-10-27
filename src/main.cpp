@@ -50,7 +50,7 @@ void loop() {
   if (digitalRead(18)) {
     Accel::drainFIFO();
     String steps = String(Accel::getSteps());
-    Screen::writeStringToScreen(steps);
+    Screen::writeStringToScreen(steps, 120, 120, 4);
   }
 
   esp_light_sleep_start(); 
