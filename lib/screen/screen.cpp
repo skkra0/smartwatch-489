@@ -2,10 +2,13 @@
 #include <Debug.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
+#include <CST816S.h>
+
 
 namespace
 {
   TFT_eSPI tft = TFT_eSPI();
+  CST816S touch(TP_SDA, TP_SCL, TP_RST, TP_INT);
 }
 
 namespace Screen
@@ -37,6 +40,9 @@ namespace Screen
 
     // 3. Configure your interrupt pin (if your touch library needs it)
     pinMode(TP_INT, INPUT_PULLUP);
+
+    //set up cst816 touch  
+    touch.begin();
 
     // todo: add actual error checking to this
     return true;

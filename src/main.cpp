@@ -3,10 +3,13 @@
 #include <Accel.h>
 #include <Debug.h>
 #include <Screen.h>
+#include <CST816S.h>
 
 #include <SPI.h>
 #include <TFT_eSPI.h>
 
+
+CST816S touch(TP_SDA, TP_SCL, TP_RST, TP_INT);
 
 void i2cBusClear(int sda, int scl) {
     digitalWrite(scl, HIGH);             // preset levels so switching to output doesn't glitch low
@@ -44,14 +47,31 @@ void setup() {
   if (Screen::setup()) {
     DEBUG_PRINTLN("setup screen");
   }
+
+
+  touch.begin();
+  Serial.println("Touch test ready. Touch the screen/pad.");
+  String text = "Time";
+  Screen::writeStringToScreen(text, 120, 80, 4);
+  text = "<3rate";
+  Screen::writeStringToScreen(text, 170, 120, 2);
+  text = "0";
+  Screen::writeStringToScreen(text, 170, 140, 4);
+  text = "Steps";
+  Screen::writeStringToScreen(text, 75, 120, 2);
+  String steps = String(Accel::getSteps());
+  Screen::writeStringToScreen(steps, 75, 140, 4);
 }
 
 void loop() {
   if (digitalRead(18)) {
     Accel::drainFIFO();
     String steps = String(Accel::getSteps());
-    Screen::writeStringToScreen(steps, 120, 120, 4);
+    Screen::writeStringToScreen(steps, 75, 140, 4);
   }
-
+  if (touch.available()) {
+    Serial.println("touched");
+  }
   esp_light_sleep_start(); 
+
 }
