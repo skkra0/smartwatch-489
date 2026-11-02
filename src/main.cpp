@@ -3,6 +3,7 @@
 #include <Accel.h>
 #include <Debug.h>
 #include <Screen.h>
+#include <BLE.h>
 
 #include <SPI.h>
 #include <TFT_eSPI.h>
@@ -44,6 +45,8 @@ void setup() {
   if (Screen::setup()) {
     DEBUG_PRINTLN("setup screen");
   }
+
+  BLE::setup();
 }
 
 void loop() {

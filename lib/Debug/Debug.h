@@ -1,3 +1,5 @@
+#include <HardwareSerial.h>
+
 #define DEBUG (1)
 #if DEBUG
   #define DEBUG_PRINT(x) Serial.print(x)
