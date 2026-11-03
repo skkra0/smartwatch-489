@@ -4,9 +4,9 @@
 #include <Debug.h>
 #include <Screen.h>
 #include <BLE.h>
-
 #include <SPI.h>
 #include <TFT_eSPI.h>
+#include <stdint.h>
 
 
 void i2cBusClear(int sda, int scl) {
@@ -29,6 +29,7 @@ void setup() {
     delay(1000);
   #endif
 
+  setCpuFrequencyMhz(80);
   i2cBusClear(TP_SDA, TP_SCL);
   // 2. Initialize the I2C bus on the correct pins (moving it away from TFT_DC on Pin 9)
   if (!Wire.begin(TP_SDA, TP_SCL)) {
@@ -49,12 +50,24 @@ void setup() {
   BLE::setup();
 }
 
+#define BLE_SEND_INTERVAL_MS 1000
+
 void loop() {
+  // busy looping
   if (digitalRead(18)) {
     Accel::drainFIFO();
-    String steps = String(Accel::getSteps());
-    Screen::writeStringToScreen(steps);
+    uint32_t steps = Accel::getSteps();
+    BLE::updateSteps(steps);
+    String stepStr = String(steps);
+    Screen::writeStringToScreen(stepStr);
   }
 
-  esp_light_sleep_start(); 
+  // send at a fixed rate
+  static uint32_t lastSend = 0;
+  if (millis() - lastSend >= BLE_SEND_INTERVAL_MS) {
+    lastSend = millis();
+    BLE::send();
+  }
+
+  // esp_light_sleep_start(); 
 }
