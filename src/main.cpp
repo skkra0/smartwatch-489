@@ -47,10 +47,8 @@ void setup() {
     DEBUG_PRINTLN("setup screen");
   }
 
-  BLE::setup();
+  // BLE::setup();
 }
-
-#define BLE_SEND_INTERVAL_MS 1000
 
 void loop() {
   // busy looping
@@ -62,12 +60,5 @@ void loop() {
     Screen::writeStringToScreen(stepStr);
   }
 
-  // send at a fixed rate
-  static uint32_t lastSend = 0;
-  if (millis() - lastSend >= BLE_SEND_INTERVAL_MS) {
-    lastSend = millis();
-    BLE::send();
-  }
-
-  // esp_light_sleep_start(); 
+  esp_light_sleep_start(); 
 }
