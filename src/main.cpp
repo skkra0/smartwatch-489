@@ -4,7 +4,10 @@
 #include <Debug.h>
 #include <Screen.h>
 #include <Touch.h>
-#include <SPI.h>
+#include <TimeManager.h>
+#include <Transmit.h>
+#include <BatteryMonitor.h>
+#include <FlashAccess.h>
 
 void i2cBusClear(int sda, int scl) {
     digitalWrite(scl, HIGH);             // preset levels so switching to output doesn't glitch low
@@ -41,14 +44,20 @@ void setup() {
   }
 
   if (Screen::setup()) {
-    DEBUG_PRINTLN("screen is ready");
+    DEBUG_PRINTLN("Screen is ready");
   }
 
   if (Touch::setup()) {
-    DEBUG_PRINTLN("touch is ready");
+    DEBUG_PRINTLN("Touch is ready");
   }
-
-  String text = "Time";
+  /*
+  //gotta find a way to input wifi
+  if (TimeManager::setup("YOUR_SSID", "YOUR_PASSWORD")) {
+    DEBUG_PRINTLN("TimeManager is synchronized");
+  }
+*/
+  //String text = TimeManager::getTimeString();
+  String text = "TI:ME";
   Screen::writeStringToScreen(text, 120, 80, 4);
   
   text = "<3rate";
@@ -69,6 +78,11 @@ void loop() {
     Accel::drainFIFO();
     String steps = String(Accel::getSteps());
     Screen::writeStringToScreen(steps, 75, 140, 4);
+    /*
+    //refresh time display on wake
+    String time = TimeManager::getTimeString();
+    Screen::writeStringToScreen(time, 120, 110, 2);
+    */
   }
 
   if (Touch::checktouch()) {
