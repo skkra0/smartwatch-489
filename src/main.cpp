@@ -39,8 +39,8 @@ void setup() {
 
   if (Accel::setup()) {
     DEBUG_PRINTLN("setup fifo");
-    pinMode(18, INPUT);
-    gpio_wakeup_enable(GPIO_NUM_18, GPIO_INTR_HIGH_LEVEL);
+    pinMode(41, INPUT);
+    gpio_wakeup_enable(GPIO_NUM_41, GPIO_INTR_HIGH_LEVEL);
     esp_sleep_enable_gpio_wakeup();
   }
 
@@ -64,7 +64,7 @@ void setup() {
 }
 
 void loop() {
-  if (digitalRead(18)) {
+  if (digitalRead(41)) {
     Accel::drainFIFO();
     String steps = String(Accel::getSteps());
     Screen::writeStringToScreen(steps, 75, 140, 4);
