@@ -6,7 +6,6 @@ namespace Transmit
 {
     bool sendData(const char* ssid, const char* password, const char* serverUrl, const String& payload)
     {
-        Serial.printf("[Transmit] Connecting to Wi-Fi: %s", ssid);
         WiFi.begin(ssid, password);
 
         int attempts = 0;

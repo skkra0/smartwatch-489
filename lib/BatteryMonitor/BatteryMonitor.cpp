@@ -15,13 +15,14 @@ namespace
 
 namespace BatteryMonitor
 {
-    void setup(uint8_t pin)
+    bool setup(uint8_t pin)
     {
         _adcPin = pin;
         pinMode(_adcPin, INPUT);
         
         // Configure ESP32-S3 ADC attenuation for full range reading (~0 to 3.3V)
         analogSetAttenuation(ADC_11db);
+        return true;
     }
 
     float getVoltage(void)

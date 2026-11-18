@@ -38,8 +38,8 @@ void setup() {
 
   if (Accel::setup()) {
     DEBUG_PRINTLN("setup fifo");
-    pinMode(18, INPUT);
-    gpio_wakeup_enable(GPIO_NUM_18, GPIO_INTR_HIGH_LEVEL);
+    pinMode(41, INPUT);
+    gpio_wakeup_enable(GPIO_NUM_41, GPIO_INTR_HIGH_LEVEL);
     esp_sleep_enable_gpio_wakeup();
   }
 
@@ -50,12 +50,16 @@ void setup() {
   if (Touch::setup()) {
     DEBUG_PRINTLN("Touch is ready");
   }
-  /*
-  //gotta find a way to input wifi
-  if (TimeManager::setup("YOUR_SSID", "YOUR_PASSWORD")) {
-    DEBUG_PRINTLN("TimeManager is synchronized");
+  
+  //using eileen's hostpot for now
+  if (TimeManager::setup("Eileen's Hotspot", "eileenhotspot")) {
+    DEBUG_PRINTLN("TimeManager is ready");
   }
-*/
+
+  if (BatteryMonitor::setup(6)) {
+    DEBUG_PRINTLN("BatteryMonitor is ready");
+  }
+
   //String text = TimeManager::getTimeString();
   String text = "TI:ME";
   Screen::writeStringToScreen(text, 120, 80, 4);
@@ -71,18 +75,23 @@ void setup() {
   
   String steps = String(Accel::getSteps());
   Screen::writeStringToScreen(steps, 75, 140, 4);
+
+  text = "Battery";
+  Screen::writeStringToScreen(text, 120, 160, 2);
+
+  text = String(BatteryMonitor::getPercentage()) + "%";
+  Screen::writeStringToScreen(text, 120, 180, 4);
 }
 
 void loop() {
-  if (digitalRead(18)) {
+  if (digitalRead(41)) {
     Accel::drainFIFO();
     String steps = String(Accel::getSteps());
     Screen::writeStringToScreen(steps, 75, 140, 4);
-    /*
+    
     //refresh time display on wake
     String time = TimeManager::getTimeString();
-    Screen::writeStringToScreen(time, 120, 110, 2);
-    */
+    Screen::writeStringToScreen(time, 120, 80, 4);
   }
 
   if (Touch::checktouch()) {

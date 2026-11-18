@@ -6,7 +6,7 @@
 namespace BatteryMonitor
 {
     // Initialize the battery monitor with the specified ADC pin
-    void setup(uint8_t pin);
+    bool setup(uint8_t pin);
     
     // Returns the calculated battery voltage in volts (e.g., 3.85)
     float getVoltage(void);
