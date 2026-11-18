@@ -3,19 +3,18 @@
 #include <Accel.h>
 #include <Debug.h>
 #include <Screen.h>
-#include <CST816S.h>
-
-#include <SPI.h>
-#include <TFT_eSPI.h>
-
-
-CST816S touch(TP_SDA, TP_SCL, TP_RST, TP_INT);
+#include <Touch.h>
+#include <TimeManager.h>
+#include <Transmit.h>
+#include <BatteryMonitor.h>
+#include <FlashAccess.h>
 
 void i2cBusClear(int sda, int scl) {
     digitalWrite(scl, HIGH);             // preset levels so switching to output doesn't glitch low
     digitalWrite(sda, HIGH);
     pinMode(sda, INPUT_PULLUP);
     pinMode(scl, OUTPUT_OPEN_DRAIN);
+   
     for (int i = 0; i < 9 && !digitalRead(sda); i++) {
       digitalWrite(scl, LOW);  delayMicroseconds(5);
       digitalWrite(scl, HIGH); delayMicroseconds(5);
@@ -45,22 +44,43 @@ void setup() {
   }
 
   if (Screen::setup()) {
-    DEBUG_PRINTLN("setup screen");
+    DEBUG_PRINTLN("Screen is ready");
   }
 
+  if (Touch::setup()) {
+    DEBUG_PRINTLN("Touch is ready");
+  }
+  
+  //using eileen's hostpot for now
+  if (TimeManager::setup("Eileen's Hotspot", "eileenhotspot")) {
+    DEBUG_PRINTLN("TimeManager is ready");
+  }
 
-  touch.begin();
-  Serial.println("Touch test ready. Touch the screen/pad.");
-  String text = "Time";
+  if (BatteryMonitor::setup(6)) {
+    DEBUG_PRINTLN("BatteryMonitor is ready");
+  }
+
+  //String text = TimeManager::getTimeString();
+  String text = "TI:ME";
   Screen::writeStringToScreen(text, 120, 80, 4);
+  
   text = "<3rate";
   Screen::writeStringToScreen(text, 170, 120, 2);
+  
   text = "0";
   Screen::writeStringToScreen(text, 170, 140, 4);
+  
   text = "Steps";
   Screen::writeStringToScreen(text, 75, 120, 2);
+  
   String steps = String(Accel::getSteps());
   Screen::writeStringToScreen(steps, 75, 140, 4);
+
+  text = "Battery";
+  Screen::writeStringToScreen(text, 120, 160, 2);
+
+  text = String(BatteryMonitor::getPercentage()) + "%";
+  Screen::writeStringToScreen(text, 120, 180, 4);
 }
 
 void loop() {
@@ -68,10 +88,16 @@ void loop() {
     Accel::drainFIFO();
     String steps = String(Accel::getSteps());
     Screen::writeStringToScreen(steps, 75, 140, 4);
+    
+    //refresh time display on wake
+    String time = TimeManager::getTimeString();
+    Screen::writeStringToScreen(time, 120, 80, 4);
   }
-  if (touch.available()) {
-    Serial.println("touched");
+
+  if (Touch::checktouch()) {
+    DEBUG_PRINTLN("touched");
   }
+
   esp_light_sleep_start(); 
 
 }
