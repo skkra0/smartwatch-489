@@ -4,6 +4,7 @@
 #include <Debug.h>
 #include <Screen.h>
 #include <Touch.h>
+#include <Heart.h>
 #include <TimeManager.h>
 #include <Transmit.h>
 #include <BatteryMonitor.h>
@@ -51,13 +52,21 @@ void setup() {
     DEBUG_PRINTLN("Touch is ready");
   }
   
-  //using eileen's hostpot for now
-  if (TimeManager::setup("Eileen's Hotspot", "eileenhotspot")) {
-    DEBUG_PRINTLN("TimeManager is ready");
-  }
+  // //using eileen's hostpot for now
+  // if (TimeManager::setup("Eileen's Hotspot", "eileenhotspot")) {
+  //   DEBUG_PRINTLN("TimeManager is ready");
+  // }
 
-  if (BatteryMonitor::setup(6)) {
-    DEBUG_PRINTLN("BatteryMonitor is ready");
+  // if (BatteryMonitor::setup(6)) {
+  //   DEBUG_PRINTLN("BatteryMonitor is ready");
+  // }
+
+  if (Heart::setup()) {
+    DEBUG_PRINTLN("heart ok");
+    // MAX30102 INT is active-low: needs pull-up to keep it high normally
+    pinMode(42, INPUT_PULLUP);
+    gpio_wakeup_enable(GPIO_NUM_42, GPIO_INTR_LOW_LEVEL);
+    esp_sleep_enable_gpio_wakeup();
   }
 
   //String text = TimeManager::getTimeString();
@@ -89,15 +98,26 @@ void loop() {
     String steps = String(Accel::getSteps());
     Screen::writeStringToScreen(steps, 75, 140, 4);
     
+
+    // todo: wake on a timer instead (every minute not ~every half second), also make this non-blocking to avoid losing lots of data from other peripherals
     //refresh time display on wake
-    String time = TimeManager::getTimeString();
-    Screen::writeStringToScreen(time, 120, 80, 4);
+    // String time = TimeManager::getTimeString();
+    // Screen::writeStringToScreen(time, 120, 80, 4);
+
+    uint16_t bpm = Heart::getBPM();
+    String bpmStr = bpm ? String(bpm) : "--";
+    Screen::writeStringToScreen(bpmStr, 170, 140, 4, "888");
   }
 
-  if (Touch::checktouch()) {
-    DEBUG_PRINTLN("touched");
-  }
+  // // if (Touch::checktouch()) {
+  // //   DEBUG_PRINTLN("touched");
+  // // }
 
-  esp_light_sleep_start(); 
+  Heart::drainFIFO();
+  delay(10);
 
+  // untested: update bpm on MAX30102 interrupt
+  // if (!digitalRead(42)) { Heart::drainFIFO(); }
+  // Serial.flush();                                    // finish debug output before sleeping
+  // esp_light_sleep_start();
 }

@@ -42,8 +42,10 @@ namespace Screen
     return true;
   }
 
-  void writeStringToScreen(String &string, int32_t x, int32_t y, uint8_t size)
+  void writeStringToScreen(String &string, int32_t x, int32_t y, uint8_t size, const char* widest = nullptr)
   {
+    tft.setTextPadding(widest ? tft.textWidth(widest, size) : 0); // measure in the same font that is drawn
     tft.drawString(string, x, y, size);
+    tft.setTextPadding(0);
   }
 }
