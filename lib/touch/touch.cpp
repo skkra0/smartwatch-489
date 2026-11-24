@@ -13,7 +13,7 @@ namespace Touch
     return true;
   }
 
-  bool checktouch(void)
+  bool checkTouch(void)
   {
     if (touch.available()) {
       return true;

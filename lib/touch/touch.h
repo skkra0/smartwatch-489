@@ -1,5 +1,5 @@
 namespace Touch
 {
     bool setup(void);
-    bool checktouch(void);
+    bool checkTouch(void);
 }
