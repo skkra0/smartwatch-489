@@ -10,6 +10,10 @@
 #include <BatteryMonitor.h>
 #include <FlashAccess.h>
 
+uint32_t steps = 0;
+uint16_t bpm = 0;
+int battery = 0;
+
 void i2cBusClear(int sda, int scl) {
     digitalWrite(scl, HIGH);             // preset levels so switching to output doesn't glitch low
     digitalWrite(sda, HIGH);
@@ -70,54 +74,42 @@ void setup() {
   }
 
   //String text = TimeManager::getTimeString();
-  String text = "TI:ME";
-  Screen::writeStringToScreen(text, 120, 80, 4);
-  
-  text = "<3rate";
-  Screen::writeStringToScreen(text, 170, 120, 2);
-  
-  text = "0";
-  Screen::writeStringToScreen(text, 170, 140, 4);
-  
-  text = "Steps";
-  Screen::writeStringToScreen(text, 75, 120, 2);
-  
-  String steps = String(Accel::getSteps());
-  Screen::writeStringToScreen(steps, 75, 140, 4);
+  Screen::writeTime("TI:ME");
+  Screen::writeBPM(bpm);
+  Screen::writeSteps(steps);
 
-  text = "Battery";
-  Screen::writeStringToScreen(text, 120, 160, 2);
-
-  text = String(BatteryMonitor::getPercentage()) + "%";
-  Screen::writeStringToScreen(text, 120, 180, 4);
+  // battery = BatteryMonitor::getPercentage();
+  Screen::writeBattery(battery);
 }
 
 void loop() {
-  if (digitalRead(41)) {
-    Accel::drainFIFO();
-    String steps = String(Accel::getSteps());
-    Screen::writeStringToScreen(steps, 75, 140, 4);
-    
+  Accel::drainFIFO();
+  Heart::drainFIFO(); // todo: wire particle sensor interrupt
 
-    // todo: wake on a timer instead (every minute not ~every half second), also make this non-blocking to avoid losing lots of data from other peripherals
-    //refresh time display on wake
-    // String time = TimeManager::getTimeString();
-    // Screen::writeStringToScreen(time, 120, 80, 4);
-
-    uint16_t bpm = Heart::getBPM();
-    String bpmStr = bpm ? String(bpm) : "--";
-    Screen::writeStringToScreen(bpmStr, 170, 140, 4, "888");
+  uint32_t newSteps = Accel::getSteps();
+  if (newSteps != steps) {
+    steps = newSteps;
+    Screen::writeSteps(newSteps);
   }
 
-  // // if (Touch::checktouch()) {
-  // //   DEBUG_PRINTLN("touched");
-  // // }
+  uint16_t newBPM = Heart::getBPM();
+  if (newBPM != bpm) {
+    bpm = newBPM;
+    Screen::writeBPM(newBPM); 
+  }
 
-  Heart::drainFIFO();
-  delay(10);
+  // todo: update time if time changed
 
-  // untested: update bpm on MAX30102 interrupt
-  // if (!digitalRead(42)) { Heart::drainFIFO(); }
-  // Serial.flush();                                    // finish debug output before sleeping
-  // esp_light_sleep_start();
+  // int newBat = BatteryMonitor::getPercentage();
+  // if (newBat != battery) {
+  //   battery = newBat;
+  //   Screen::writeBattery(newBat);
+  // }
+
+  if (Touch::checkTouch()) {
+    DEBUG_PRINTLN("touched");
+  }
+
+  Serial.flush();                                    // finish debug output before sleeping
+  esp_light_sleep_start();
 }

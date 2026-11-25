@@ -1,5 +1,10 @@
 namespace Screen
 {
     bool setup(void);
-    void writeStringToScreen(String &string, int32_t x, int32_t y, uint8_t size, const char* width = nullptr);
+
+    void writeSteps(uint32_t steps);
+    void writeBPM(uint16_t bpm);
+    void writeBattery(int battery);
+    void writeTime(String& time);
+    void writeTime(const char* time);
 }

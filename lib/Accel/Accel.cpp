@@ -76,8 +76,8 @@ namespace
         possible = 0;
         isWalking = true;
       }
-      DEBUG_PRINT("steps: ");
-      DEBUG_PRINTLN(steps);
+      // DEBUG_PRINT("steps: ");
+      // DEBUG_PRINTLN(steps);
     }
     else if (++fails >= ACCEL_MAX_FAILS)
     {
@@ -122,15 +122,6 @@ namespace
     } else if (moving && ++sinceMoving > kStillThreshold) {
       moving = false;
     }
-
-    #if DEBUG
-      DEBUG_PRINT(">s:");
-      DEBUG_PRINTLN(s);
-      DEBUG_PRINT(">dynThr:");
-      DEBUG_PRINTLN(dynThr);
-      DEBUG_PRINT(">moving:");
-      DEBUG_PRINTLN(moving ? 1 : 0);
-    #endif
 
     uint8_t center = (wIdx + ACCEL_HALF) % ACCEL_WINDOW;
     float v = win[center];
@@ -230,6 +221,12 @@ namespace Accel
       Stream mode (10). The buffer fills with new samples continuously. When it is full it begins overwriting older data.
       Stream-to-FIFO mode (11). The buffer starts in Stream mode and switches to FIFO when an interrupt occurs.
     */
+
+    Wire.beginTransmission(lisAddr);
+    Wire.write(LIS3DH_REG_FIFOCTRL);
+    Wire.write(0b00000000);   // Temporarily use bypass mode to empty the FIFO, resetting INT
+    err = Wire.endTransmission();
+    if (err) goto onerr;
 
     Wire.beginTransmission(lisAddr);
     Wire.write(LIS3DH_REG_FIFOCTRL);

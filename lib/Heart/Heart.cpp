@@ -20,6 +20,8 @@ namespace
     constexpr unsigned long kThreshold = 120000;
 
     constexpr float kSampleRateHz = 50.0f;
+    constexpr uint32_t kSamplePeriodMs = (uint32_t)(1000.0f / kSampleRateHz); // 20 ms
+    uint32_t sampleMs = 0; // estimated millis() when the sample being processed was taken (debug plots)
 
     constexpr int kBeatWindowMs = 667;
     constexpr int kPeakWindowMs  = 111;
@@ -106,8 +108,6 @@ namespace
         emaInterval += kIntervalAlpha * (iv - emaInterval);
         if (accepted < kMinAccepted) accepted++;
         bpm = 60.0f / emaInterval;
-        DEBUG_PRINT(">bpm:");
-        DEBUG_PRINTLN(bpm);
     }
 
     // Called for an accepted block with its sample number
@@ -116,12 +116,6 @@ namespace
         if (haveLastBeat) {
             float intervalS = (peakNum - lastBeatNum) / kSampleRateHz;
             addInterval(intervalS);
-            #if DEBUG
-            Serial.print(">beatInterval:");
-            Serial.println(intervalS);
-            Serial.print(">bpm:");
-            Serial.println(bpm);
-            #endif
         }
         lastBeatNum = peakNum;
         haveLastBeat = true;
@@ -148,9 +142,6 @@ namespace
         accepted = 0;
         bpm = 0;
         zMean = 0;
-        #if DEBUG
-        DEBUG_PRINTLN(">bpm: 0");
-        #endif
     }
 
     void process(uint32_t sample)
@@ -166,8 +157,9 @@ namespace
         #if DEBUG
         if (++printCounter >= kPrintEvery) {
             printCounter = 0;
-            Serial.print(">ir:");
-            Serial.println(y);
+            // ">name:timestamp_ms:value" so Teleplot spaces samples by when they were
+            // taken, not by when the batch was printed
+            Serial.printf(">ir:%lu:%.2f\n", (unsigned long)sampleMs, y);
         }
         #endif
 
@@ -213,11 +205,6 @@ namespace
         float thr1 = maBeat + alpha;
         int thr2 = kPeakSamples;
 
-        #if DEBUG
-        // plot these together in Teleplot to see blocks form
-        Serial.print(">maPeak:"); Serial.println(maPeak);
-        Serial.print(">thr1:");   Serial.println(thr1);
-        #endif
 
         if (maPeak > thr1) {
             if (!inBlock) {
@@ -373,8 +360,12 @@ namespace Heart
             return;
         }
 
+        // assume newest sample was taken about now, earlier ones a sample period apart
+        uint32_t drainMs = millis();
+
         for (int i = 0; i < nSamples; i++)
         {
+            sampleMs = drainMs - (uint32_t)(nSamples - 1 - i) * kSamplePeriodMs;
             // one sample
             uint32_t raw = (uint32_t)Wire.read() << 16;
             raw |= (uint32_t)Wire.read() << 8;
