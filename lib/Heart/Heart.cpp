@@ -2,6 +2,7 @@
 #include <Debug.h>
 #include <Heart.h>
 #include <Biquad.h>
+#include <Accel.h>
 
 namespace
 {
@@ -249,7 +250,7 @@ namespace
     void handleRaw(uint32_t raw)
     {
         // off skin or saturated: clear BPM right away and wait for a good signal
-        if (raw < kThreshold || raw >= kAdcMax)
+        if (raw < kThreshold || raw >= kAdcMax || Accel::isMoving())
         {
             if (!needsReset) resetWindow(); // stop showing the old BPM
             needsReset = true;
@@ -385,17 +386,10 @@ namespace Heart
     }
 
     uint16_t getBPM() {
-        if (accepted < kMinAccepted) {
+        if (Accel::isMoving() || accepted < kMinAccepted) {
             // not ready
             return 0;
         }
         return (uint16_t)lroundf(bpm);
-    }
-
-    String getFormattedBPM() {
-        uint16_t bpm = getBPM();
-        if (bpm == 0) {
-            return "-";
-        }
     }
 }

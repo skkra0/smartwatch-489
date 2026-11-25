@@ -22,4 +22,5 @@ namespace Accel
     void drainFIFO(void);
     bool setup(void);
     uint32_t getSteps(void);
+    bool isMoving(void);  // true while the wrist is moving (and for 2 s after)
 };

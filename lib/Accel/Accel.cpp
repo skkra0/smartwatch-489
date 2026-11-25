@@ -41,6 +41,10 @@ namespace
   // total steps
   uint32_t steps = 0;
 
+  constexpr int kStillThreshold = 2 * ACCEL_SAMPLE_HZ;
+  bool moving = true;
+  uint8_t sinceMoving = 0;
+
   // check if step and update threshold
   void evalPair(float mx, float mn)
   {
@@ -112,6 +116,22 @@ namespace
       return;
     }
 
+    if (s > dynThr + ACCEL_SENS) {
+      moving = true;
+      sinceMoving = 0;
+    } else if (moving && ++sinceMoving > kStillThreshold) {
+      moving = false;
+    }
+
+    #if DEBUG
+      DEBUG_PRINT(">s:");
+      DEBUG_PRINTLN(s);
+      DEBUG_PRINT(">dynThr:");
+      DEBUG_PRINTLN(dynThr);
+      DEBUG_PRINT(">moving:");
+      DEBUG_PRINTLN(moving ? 1 : 0);
+    #endif
+
     uint8_t center = (wIdx + ACCEL_HALF) % ACCEL_WINDOW;
     float v = win[center];
     bool isMax = true, isMin = true;
@@ -166,6 +186,11 @@ namespace Accel
   uint32_t getSteps(void)
   {
     return steps;
+  }
+
+  bool isMoving(void)
+  {
+    return moving;
   }
 
   // call Wire.begin() and Serial.begin() first
